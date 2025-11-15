@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "crates/*",
+    "seeker",
+]
+resolver = "3"
+
+[workspace.dependencies]
+bevy = "0.17.2"
+bevy_file_dialog = "0.9.0"
+seeker_home_plugin = { path = "crates/seeker_home_plugin" }
+seeker_scroll = { path = "crates/seeker_scroll"}
+seeker_resource = { path = "crates/seeker_resource" }
+seeker_state = { path = "crates/seeker_state" }
