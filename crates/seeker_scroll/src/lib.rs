@@ -5,9 +5,6 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct SeekerScrollPlugin;
 
-#[derive(Component)]
-pub struct OnScroll;
-
 const LINE_HEIGHT: f32 = 20.;
 
 impl Plugin for SeekerScrollPlugin {
@@ -24,6 +21,7 @@ fn send_scroll_events(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut commands: Commands,
 ) {
+    // info!("send_scroll_events");
     for mouse_wheel in mouse_wheel_reader.read() {
         let mut delta = -Vec2::new(mouse_wheel.x, mouse_wheel.y);
 
@@ -54,8 +52,9 @@ struct Scroll {
 
 fn on_scroll_handler(
     mut scroll: On<Scroll>,
-    mut query: Query<(&mut ScrollPosition, &Node, &ComputedNode), With<OnScroll>>,
+    mut query: Query<(&mut ScrollPosition, &Node, &ComputedNode)>,
 ) {
+    // info!("on_scroll_handler");
     let Ok((mut scroll_position, node, computed)) = query.get_mut(scroll.entity) else {
         return;
     };

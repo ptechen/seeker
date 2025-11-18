@@ -1,0 +1,9 @@
+[package]
+name = "seeker_config"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+toml.workspace = true
+serde = { workspace = true, features = ["derive"], version = "1.0.228" }
+bevy = { workspace = true, features = ["serialize"] }

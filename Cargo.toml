@@ -6,9 +6,20 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
-bevy = "0.17.2"
-bevy_file_dialog = "0.9.0"
+tokio = "1"
+bevy = "0.17.3"
+toml = "0.9.8"
+serde = "1"
 seeker_home_plugin = { path = "crates/seeker_home_plugin" }
 seeker_scroll = { path = "crates/seeker_scroll"}
 seeker_resource = { path = "crates/seeker_resource" }
 seeker_state = { path = "crates/seeker_state" }
+seeker_config = {  path = "crates/seeker_config" }
+seeker_embed_folder = { path = "crates/seeker_embed_folder" }
+seeker_embed_plugin = { path = "crates/seeker_embed_plugin" }
+[profile.release]
+strip = true      # 自动去除调试符号
+opt-level = 3   # 优化目标为小体积而非速度
+lto = true        # 启用链接时优化
+codegen-units = 1 # 编译单元数为1可以提高优化效果但会降低编译速度
+panic = "abort"   # 使用 abort 而不是 unwind 可以减少二进制大小

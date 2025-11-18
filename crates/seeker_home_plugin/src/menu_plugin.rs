@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::text::LineHeight;
-use seeker_resource::fonts::FIRASSANS_BOLD;
 use seeker_resource::SeekerResource;
 use seeker_state::{SeekerHomeSubFnState, SeekerHomeSubLoadState, SeekerState};
 use crate::MenuUi;
@@ -22,7 +21,6 @@ impl Plugin for MenuPlugin {
 impl MenuPlugin {
     fn menu_enter(
         mut commands: Commands,
-        fonts: Res<AssetServer>,
         res: Res<SeekerResource>,
         mut query: Query<Entity, With<MenuUi>>,
     ) {
@@ -44,16 +42,11 @@ impl MenuPlugin {
                     .with_children(|parent| {
                         parent.spawn((
                             Text::new("Seeker"),
-                            TextFont {
-                                font: fonts.load(FIRASSANS_BOLD),
-                                ..default()
-                            },
                             TextColor(res.colors.home_font_color),
                         ));
                         parent.spawn((
                             Text::new("0.0.1"),
                             TextFont {
-                                font: fonts.load(FIRASSANS_BOLD),
                                 font_size: 12.0,
                                 ..default()
                             },
@@ -96,7 +89,6 @@ impl MenuPlugin {
                                 parent.spawn((
                                     Text::new("Projects"),
                                     TextFont {
-                                        font: fonts.load(FIRASSANS_BOLD),
                                         font_size: 20.0,
                                         line_height: LineHeight::Px(30.0),
                                         ..default()
@@ -126,7 +118,6 @@ impl MenuPlugin {
                                 parent.spawn((
                                     Text::new("Projects"),
                                     TextFont {
-                                        font: fonts.load(FIRASSANS_BOLD),
                                         font_size: 20.0,
                                         line_height: LineHeight::Px(30.0),
                                         ..default()
@@ -163,7 +154,7 @@ impl MenuPlugin {
                 Interaction::Pressed => {
                     state.set(match name.as_str() {
                         "Project" => SeekerHomeSubFnState::Project,
-                        "Open" => SeekerHomeSubFnState::Open,
+                        "Open" => SeekerHomeSubFnState::FileDialog,
                         "NewProject" => SeekerHomeSubFnState::NewProject,
                         "CloneRepo" => SeekerHomeSubFnState::CloneRepo,
                         _ => SeekerHomeSubFnState::None,

@@ -5,6 +5,6 @@ edition = "2024"
 
 [dependencies]
 bevy.workspace = true
-bevy_file_dialog.workspace = true
 seeker_state.workspace = true
 seeker_resource.workspace = true
+seeker_config.workspace = true
