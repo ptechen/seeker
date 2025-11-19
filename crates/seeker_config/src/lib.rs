@@ -1,7 +1,7 @@
-use std::sync::LazyLock;
 use bevy::prelude::*;
 use bevy::window::WindowTheme;
 use serde::{Deserialize, Serialize};
+use std::sync::LazyLock;
 
 pub static SEEKER_CONFIG: LazyLock<SeekerConfig> = LazyLock::new(|| {
     let path = std::env::home_dir().unwrap();
@@ -10,7 +10,7 @@ pub static SEEKER_CONFIG: LazyLock<SeekerConfig> = LazyLock::new(|| {
     toml::from_slice::<SeekerConfig>(&data).unwrap_or_default()
 });
 
-#[derive(Clone, Deserialize ,Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct SeekerConfig {
     pub window_theme: WindowTheme,
     #[serde(skip)]
@@ -26,8 +26,8 @@ impl Default for SeekerConfig {
     }
 }
 
-#[derive(Clone, Default, Deserialize ,Serialize)]
-pub struct SeekerColors{
+#[derive(Clone, Default, Deserialize, Serialize)]
+pub struct SeekerColors {
     pub background: Color,
 }
 

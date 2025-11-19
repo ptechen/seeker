@@ -10,6 +10,7 @@ tokio = "1"
 bevy = "0.17.3"
 toml = "0.9.8"
 serde = "1"
+enum_from_derive = "0.1.6"
 seeker_home_plugin = { path = "crates/seeker_home_plugin" }
 seeker_scroll = { path = "crates/seeker_scroll"}
 seeker_resource = { path = "crates/seeker_resource" }
@@ -17,6 +18,7 @@ seeker_state = { path = "crates/seeker_state" }
 seeker_config = {  path = "crates/seeker_config" }
 seeker_embed_folder = { path = "crates/seeker_embed_folder" }
 seeker_embed_plugin = { path = "crates/seeker_embed_plugin" }
+seeker_trait = { path = "crates/seeker_trait" }
 [profile.release]
 strip = true      # 自动去除调试符号
 opt-level = 3   # 优化目标为小体积而非速度

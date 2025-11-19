@@ -1,20 +1,31 @@
+use crate::MenuUi;
 use bevy::prelude::*;
+use bevy::state::state::FreelyMutableState;
 use bevy::text::LineHeight;
+use bevy::ui::FocusPolicy;
+use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
 use seeker_state::{SeekerHomeSubFnState, SeekerHomeSubLoadState, SeekerState};
-use crate::MenuUi;
+use seeker_trait::SeekerTrait;
 
 #[derive(Component)]
 pub struct MenuPlugin;
 
-#[derive(Component)]
+impl SeekerTrait for MenuPlugin {}
+
+#[derive(Component, Debug, Default, Clone, Copy, PartialEq, Eq, Reflect)]
+#[reflect(Component, Default, Debug, PartialEq, Clone)]
+#[require(Node, FocusPolicy::Block, Interaction)]
 pub struct HomeMenuButton;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(SeekerHomeSubLoadState::Loaded), Self::menu_enter);
         app.add_systems(OnEnter(SeekerState::Home), Self::menu_enter)
-            .add_systems(Update, Self::menu_update);
+            .add_systems(
+                Update,
+                Self::update_color_state::<HomeMenuButton, SeekerHomeSubFnState>,
+            );
     }
 }
 
@@ -23,6 +34,7 @@ impl MenuPlugin {
         mut commands: Commands,
         res: Res<SeekerResource>,
         mut query: Query<Entity, With<MenuUi>>,
+        assets: Res<AssetServer>,
     ) {
         for entity in query.iter_mut() {
             commands.entity(entity).with_children(|parent| {
@@ -43,11 +55,16 @@ impl MenuPlugin {
                         parent.spawn((
                             Text::new("Seeker"),
                             TextColor(res.colors.home_font_color),
+                            TextFont {
+                                font: assets.load(MAPLE_MONO_BOLD_ITALIC),
+                                ..default()
+                            },
                         ));
                         parent.spawn((
                             Text::new("0.0.1"),
                             TextFont {
                                 font_size: 12.0,
+                                font: assets.load(MAPLE_MONO_BOLD_ITALIC),
                                 ..default()
                             },
                             TextColor(res.colors.home_font_color),
@@ -70,7 +87,6 @@ impl MenuPlugin {
                             .spawn((
                                 Name::new("Project"),
                                 HomeMenuButton,
-                                Button,
                                 Node {
                                     width: Val::Percent(100.0),
                                     height: Val::Px(30.0),
@@ -91,6 +107,7 @@ impl MenuPlugin {
                                     TextFont {
                                         font_size: 20.0,
                                         line_height: LineHeight::Px(30.0),
+                                        font: assets.load(MAPLE_MONO_BOLD_ITALIC),
                                         ..default()
                                     },
                                     TextColor(res.colors.home_font_color),
@@ -100,7 +117,6 @@ impl MenuPlugin {
                             .spawn((
                                 Name::new("Projects1"),
                                 HomeMenuButton,
-                                Button,
                                 Node {
                                     width: Val::Percent(100.0),
                                     height: Val::Px(30.0),
@@ -120,6 +136,7 @@ impl MenuPlugin {
                                     TextFont {
                                         font_size: 20.0,
                                         line_height: LineHeight::Px(30.0),
+                                        font: assets.load(MAPLE_MONO_BOLD_ITALIC),
                                         ..default()
                                     },
                                     TextColor(res.colors.home_font_color),
@@ -127,42 +144,6 @@ impl MenuPlugin {
                             });
                     });
             });
-        }
-    }
-
-    fn menu_update(
-        mut query: ParamSet<(
-            Query<(&Interaction, &mut BackgroundColor, &Name), (Changed<Interaction>, With<Button>)>,
-            Query<&mut BackgroundColor, With<HomeMenuButton>>,
-        )>,
-        mut state: ResMut<NextState<SeekerHomeSubFnState>>,
-        res: Res<SeekerResource>,
-    ) {
-        let mut has_pressed = false;
-        query.p0().iter().for_each(|(interaction, _, _)| {
-            if *interaction == Interaction::Pressed {
-                has_pressed = true;
-            }
-        });
-        if has_pressed {
-            query.p1().iter_mut().for_each(|mut color| {
-                *color = BackgroundColor(Color::NONE);
-            });
-        }
-        for (interaction, mut color, name) in &mut query.p0().iter_mut() {
-            match *interaction {
-                Interaction::Pressed => {
-                    state.set(match name.as_str() {
-                        "Project" => SeekerHomeSubFnState::Project,
-                        "Open" => SeekerHomeSubFnState::FileDialog,
-                        "NewProject" => SeekerHomeSubFnState::NewProject,
-                        "CloneRepo" => SeekerHomeSubFnState::CloneRepo,
-                        _ => SeekerHomeSubFnState::None,
-                    });
-                    *color = BackgroundColor(res.colors.home_hovered);
-                }
-                _ => {}
-            }
         }
     }
 }

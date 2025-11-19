@@ -2184,6 +2184,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum_from_derive"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c471ea4dc807632456e798bdfa7f78b4bd01c1fd6a67e146902ce5bbc162ffcf"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "enumn"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4148,6 +4159,7 @@ dependencies = [
  "seeker_config",
  "seeker_resource",
  "seeker_state",
+ "seeker_trait",
 ]
 
 [[package]]
@@ -4169,6 +4181,16 @@ name = "seeker_state"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "enum_from_derive",
+]
+
+[[package]]
+name = "seeker_trait"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "enum_from_derive",
+ "seeker_resource",
 ]
 
 [[package]]

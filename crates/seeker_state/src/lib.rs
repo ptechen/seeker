@@ -7,17 +7,44 @@ pub enum SeekerState {
     Edit,
 }
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates)]
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates, enum_from_derive::From)]
 #[source(SeekerState = SeekerState::Home)]
 #[states(scoped_entities)]
 pub enum SeekerHomeSubFnState {
-    #[default]
     Project,
     NewProject,
-    Open,
     CloneRepo,
-    FileDialog,
+    #[default]
     None,
+}
+
+impl From<String> for SeekerHomeSubFnState {
+    fn from(s: String) -> Self {
+        Self::from(s.as_str())
+    }
+}
+
+#[test]
+fn test() {
+    assert_eq!(
+        SeekerHomeSubFnState::from("Project 1".to_string()),
+        SeekerHomeSubFnState::Project
+    );
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates, enum_from_derive::From)]
+#[source(SeekerState = SeekerState::Home)]
+#[states(scoped_entities)]
+pub enum SeekerFileDialogFnState {
+    #[default]
+    None,
+    Open,
+}
+
+impl From<String> for SeekerFileDialogFnState {
+    fn from(s: String) -> Self {
+        Self::from(s.as_str())
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates)]

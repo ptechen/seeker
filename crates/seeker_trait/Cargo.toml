@@ -1,0 +1,9 @@
+[package]
+name = "seeker_trait"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy.workspace = true
+seeker_resource.workspace = true
+enum_from_derive.workspace = true

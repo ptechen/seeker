@@ -1,31 +1,53 @@
 use crate::FnUi;
 use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
+use bevy::state::state::FreelyMutableState;
 use bevy::text::LineHeight;
+use bevy::ui::FocusPolicy;
+use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
-use seeker_state::{SeekerHomeSubFnState, SeekerHomeSubLoadState};
+use seeker_state::{SeekerFileDialogFnState, SeekerHomeSubFnState, SeekerHomeSubLoadState};
+use seeker_trait::SeekerTrait;
 
-#[derive(Component)]
+#[derive(Component, Debug, Default, Clone, Copy, PartialEq, Eq, Reflect)]
+#[reflect(Component, Default, Debug, PartialEq, Clone)]
+#[require(Node, FocusPolicy::Block, Interaction)]
 pub struct ProjectItemButton;
 
-#[derive(Component)]
-pub struct Project;
+#[derive(Component, Debug, Default, Clone, Copy, PartialEq, Eq, Reflect)]
+#[reflect(Component, Default, Debug, PartialEq, Clone)]
+#[require(Node, FocusPolicy::Block, Interaction)]
+pub struct FileDialogButton;
 
-impl Plugin for Project {
+#[derive(Component)]
+pub struct ProjectPlugin;
+
+impl SeekerTrait for ProjectPlugin {}
+
+impl Plugin for ProjectPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(SeekerHomeSubLoadState::Loaded), Self::project_enter)
             .add_systems(OnEnter(SeekerHomeSubFnState::Project), Self::project_enter)
-            .add_systems(OnEnter(SeekerHomeSubFnState::NewProject), Self::new_project)
-            .add_systems(OnEnter(SeekerHomeSubFnState::Open), Self::open_project)
+            // .add_systems(OnEnter(SeekerHomeSubFnState::NewProject), Self::new_project)
+            // .add_systems(OnEnter(SeekerHomeSubFnState::Open), Self::open_project)
             .add_systems(
                 OnEnter(SeekerHomeSubFnState::CloneRepo),
                 Self::clone_project,
             )
-            .add_observer(Self::button_on_interaction::<Insert, Hovered>);
+            .add_systems(
+                Update,
+                Self::update_color_state::<ProjectItemButton, SeekerHomeSubFnState>,
+            )
+            .add_systems(
+                Update,
+                Self::update_color_state::<FileDialogButton, SeekerFileDialogFnState>,
+            )
+            .add_observer(Self::button_on_hovered_changed_color::<Insert, Hovered, ProjectItemButton>)
+            .add_observer(Self::button_on_hovered_changed_color::<Insert, Hovered, FileDialogButton>);
     }
 }
 
-impl Project {
+impl ProjectPlugin {
     fn new_project(
         mut commands: Commands,
         query: Query<Entity, With<FnUi>>,
@@ -63,6 +85,7 @@ impl Project {
         mut commands: Commands,
         query: Query<Entity, With<FnUi>>,
         res: Res<SeekerResource>,
+        assets: Res<AssetServer>,
     ) {
         for entity in query.iter() {
             commands.entity(entity).with_children(|parent| {
@@ -125,39 +148,77 @@ impl Project {
                                     },))
                                     .with_children(|parent| {
                                         for text in vec!["NewProject", "Open", "CloneRepo"] {
-                                            parent
-                                                .spawn((
-                                                    Name::new(text),
-                                                    Node {
-                                                        padding: UiRect::new(
-                                                            Val::Px(15.),
-                                                            Val::Px(15.),
-                                                            Val::Px(5.0),
-                                                            Val::Px(5.0),
-                                                        ),
-                                                        box_sizing: BoxSizing::BorderBox,
-                                                        border: UiRect::all(Val::Px(1.0)),
-                                                        justify_content: JustifyContent::Center,
-                                                        align_self: AlignSelf::Center,
-                                                        ..default()
-                                                    },
-                                                    BorderRadius::all(Val::Px(3.)),
-                                                    ProjectItemButton,
-                                                    Button,
-                                                    Hovered::default(),
-                                                    BorderColor::all(res.colors.button_border),
-                                                    BackgroundColor(res.colors.home_menu),
-                                                ))
-                                                .with_children(|parent| {
-                                                    parent.spawn((
-                                                        Text::new(text),
-                                                        TextFont {
-                                                            font_size: 16.0,
+                                            if text == "Open" {
+                                                parent
+                                                    .spawn((
+                                                        Name::new(text),
+                                                        Node {
+                                                            padding: UiRect::new(
+                                                                Val::Px(15.),
+                                                                Val::Px(15.),
+                                                                Val::Px(5.0),
+                                                                Val::Px(5.0),
+                                                            ),
+                                                            box_sizing: BoxSizing::BorderBox,
+                                                            border: UiRect::all(Val::Px(1.0)),
+                                                            justify_content: JustifyContent::Center,
+                                                            align_self: AlignSelf::Center,
                                                             ..default()
                                                         },
-                                                        TextColor(res.colors.home_font_color),
-                                                    ));
-                                                });
+                                                        BorderRadius::all(Val::Px(3.)),
+                                                        FileDialogButton,
+                                                        Hovered::default(),
+                                                        BorderColor::all(res.colors.button_border),
+                                                        BackgroundColor(res.colors.home_menu),
+                                                    ))
+                                                    .with_children(|parent| {
+                                                        parent.spawn((
+                                                            Text::new(text),
+                                                            TextFont {
+                                                                font_size: 16.0,
+                                                                font: assets
+                                                                    .load(MAPLE_MONO_BOLD_ITALIC),
+                                                                ..default()
+                                                            },
+                                                            TextColor(res.colors.home_font_color),
+                                                        ));
+                                                    });
+                                            } else {
+                                                parent
+                                                    .spawn((
+                                                        Name::new(text),
+                                                        Node {
+                                                            padding: UiRect::new(
+                                                                Val::Px(15.),
+                                                                Val::Px(15.),
+                                                                Val::Px(5.0),
+                                                                Val::Px(5.0),
+                                                            ),
+                                                            box_sizing: BoxSizing::BorderBox,
+                                                            border: UiRect::all(Val::Px(1.0)),
+                                                            justify_content: JustifyContent::Center,
+                                                            align_self: AlignSelf::Center,
+                                                            ..default()
+                                                        },
+                                                        BorderRadius::all(Val::Px(3.)),
+                                                        ProjectItemButton,
+                                                        Hovered::default(),
+                                                        BorderColor::all(res.colors.button_border),
+                                                        BackgroundColor(res.colors.home_menu),
+                                                    ))
+                                                    .with_children(|parent| {
+                                                        parent.spawn((
+                                                            Text::new(text),
+                                                            TextFont {
+                                                                font_size: 16.0,
+                                                                font: assets
+                                                                    .load(MAPLE_MONO_BOLD_ITALIC),
+                                                                ..default()
+                                                            },
+                                                            TextColor(res.colors.home_font_color),
+                                                        ));
+                                                    });
+                                            }
                                         }
                                     });
                             });
@@ -189,7 +250,6 @@ impl Project {
                                     parent
                                         .spawn((
                                             ProjectItemButton,
-                                            Button,
                                             Hovered::default(),
                                             Name::new("ProjectListItem"),
                                             Node {
@@ -232,6 +292,8 @@ impl Project {
                                                                 1.2,
                                                             ),
                                                             font_size: 16.0,
+                                                            font: assets
+                                                                .load(MAPLE_MONO_BOLD_ITALIC),
                                                             ..default()
                                                         },
                                                         TextColor(res.colors.home_font_color),
@@ -254,6 +316,11 @@ impl Project {
                                                 .with_children(|parent| {
                                                     parent.spawn((
                                                         Text::new(format!("Project {}", i)),
+                                                        TextFont {
+                                                            font: assets
+                                                                .load(MAPLE_MONO_BOLD_ITALIC),
+                                                            ..default()
+                                                        },
                                                         TextColor(res.colors.home_font_color),
                                                     ));
                                                 });
@@ -262,20 +329,6 @@ impl Project {
                             });
                     });
             });
-        }
-    }
-
-    pub fn button_on_interaction<E: EntityEvent, C: Component>(
-        _event: On<E, C>,
-        mut query: Query<(&mut BackgroundColor, &Hovered), With<ProjectItemButton>>,
-        res: Res<SeekerResource>,
-    ) {
-        for (mut color, has_hovered) in &mut query.iter_mut() {
-            if has_hovered.get() {
-                *color = BackgroundColor(res.colors.home_hovered);
-            } else {
-                *color = BackgroundColor(Color::NONE);
-            }
         }
     }
 }

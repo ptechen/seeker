@@ -8,3 +8,4 @@ bevy.workspace = true
 seeker_state.workspace = true
 seeker_resource.workspace = true
 seeker_config.workspace = true
+seeker_trait.workspace = true

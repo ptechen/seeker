@@ -1,4 +1,3 @@
-use std::time::Duration;
 use bevy::input_focus::InputFocus;
 use bevy::prelude::*;
 use bevy::ui_widgets::UiWidgetsPlugins;
@@ -10,9 +9,9 @@ use seeker_home_plugin::SeekerHomePlugin;
 use seeker_resource::SeekerResource;
 use seeker_scroll::SeekerScrollPlugin;
 use seeker_state::SeekerState;
+use std::time::Duration;
 
 fn main() {
-
     App::new()
         .insert_resource(WinitSettings {
             focused_mode: UpdateMode::reactive_low_power(Duration::from_secs(60)),

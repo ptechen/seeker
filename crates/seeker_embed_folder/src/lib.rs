@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Meta, Lit};
+use syn::{parse_macro_input, DeriveInput, Lit, Meta};
 
 #[proc_macro_derive(SeekerEmbedFolder, attributes(folder_path))]
 pub fn embed_folder(input: TokenStream) -> TokenStream {
@@ -25,7 +25,7 @@ pub fn embed_folder(input: TokenStream) -> TokenStream {
         panic!("folder_path attribute is required");
     }
 
-    let list =  embed_file(&folder_path);
+    let list = embed_file(&folder_path);
     let expanded = quote! {
         impl bevy::prelude::Plugin for #name {
             fn build(&self, app: &mut bevy::prelude::App) {
@@ -60,6 +60,6 @@ fn embed_file(folder_path: &str) -> Vec<proc_macro2::TokenStream> {
             let items = embed_file(&entry.path().to_string_lossy());
             list.extend(items);
         }
-    };
+    }
     list
 }
