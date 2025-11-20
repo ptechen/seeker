@@ -1,4 +1,4 @@
-use crate::fn_plugin::file_dialog::FileDialogPlugin;
+use crate::fn_plugin::file_dialog_plugin::FileDialogPlugin;
 use crate::fn_plugin::project::ProjectPlugin;
 use bevy::prelude::*;
 

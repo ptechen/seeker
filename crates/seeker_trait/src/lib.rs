@@ -1,7 +1,9 @@
 use bevy::color::Color;
+use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::state::state::FreelyMutableState;
+use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
 
 pub trait SeekerTrait {
@@ -79,5 +81,54 @@ pub trait SeekerTrait {
                 }
             });
         }
+    }
+
+    fn ui_button<BUTTON: Component>(
+        parent: &mut RelatedSpawnerCommands<ChildOf>,
+        button: BUTTON,
+        name: &str,
+        text: &str,
+        res: &Res<SeekerResource>,
+        assets: &Res<AssetServer>,
+    ) {
+        parent
+            .spawn((
+                Name::new(name.to_string()),
+                button,
+                Node {
+                    padding: UiRect::new(Val::Px(15.), Val::Px(15.), Val::Px(5.0), Val::Px(5.0)),
+                    box_sizing: BoxSizing::BorderBox,
+                    border: UiRect::all(Val::Px(1.0)),
+                    justify_content: JustifyContent::Center,
+                    align_self: AlignSelf::Center,
+                    ..default()
+                },
+                BorderRadius::all(Val::Px(3.)),
+                Hovered::default(),
+                BorderColor::all(res.colors.button_border),
+                BackgroundColor(res.colors.home_menu),
+            ))
+            .with_children(|parent| {
+                parent.spawn((
+                    Text::new(text),
+                    TextFont {
+                        font_size: 16.0,
+                        font: assets.load(MAPLE_MONO_BOLD_ITALIC),
+                        ..default()
+                    },
+                    TextColor(res.colors.home_font_color),
+                ));
+            });
+    }
+
+    /// text name 相同
+    fn ui_button_same<BUTTON: Component>(
+        parent: &mut RelatedSpawnerCommands<ChildOf>,
+        button: BUTTON,
+        name: &str,
+        res: &Res<SeekerResource>,
+        assets: &Res<AssetServer>,
+    ) {
+        Self::ui_button(parent, button, name, name, res, assets);
     }
 }

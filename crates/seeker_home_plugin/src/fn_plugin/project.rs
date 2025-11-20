@@ -42,8 +42,12 @@ impl Plugin for ProjectPlugin {
                 Update,
                 Self::update_color_state::<FileDialogButton, SeekerFileDialogFnState>,
             )
-            .add_observer(Self::button_on_hovered_changed_color::<Insert, Hovered, ProjectItemButton>)
-            .add_observer(Self::button_on_hovered_changed_color::<Insert, Hovered, FileDialogButton>);
+            .add_observer(
+                Self::button_on_hovered_changed_color::<Insert, Hovered, ProjectItemButton>,
+            )
+            .add_observer(
+                Self::button_on_hovered_changed_color::<Insert, Hovered, FileDialogButton>,
+            );
     }
 }
 
@@ -149,75 +153,21 @@ impl ProjectPlugin {
                                     .with_children(|parent| {
                                         for text in vec!["NewProject", "Open", "CloneRepo"] {
                                             if text == "Open" {
-                                                parent
-                                                    .spawn((
-                                                        Name::new(text),
-                                                        Node {
-                                                            padding: UiRect::new(
-                                                                Val::Px(15.),
-                                                                Val::Px(15.),
-                                                                Val::Px(5.0),
-                                                                Val::Px(5.0),
-                                                            ),
-                                                            box_sizing: BoxSizing::BorderBox,
-                                                            border: UiRect::all(Val::Px(1.0)),
-                                                            justify_content: JustifyContent::Center,
-                                                            align_self: AlignSelf::Center,
-                                                            ..default()
-                                                        },
-                                                        BorderRadius::all(Val::Px(3.)),
-                                                        FileDialogButton,
-                                                        Hovered::default(),
-                                                        BorderColor::all(res.colors.button_border),
-                                                        BackgroundColor(res.colors.home_menu),
-                                                    ))
-                                                    .with_children(|parent| {
-                                                        parent.spawn((
-                                                            Text::new(text),
-                                                            TextFont {
-                                                                font_size: 16.0,
-                                                                font: assets
-                                                                    .load(MAPLE_MONO_BOLD_ITALIC),
-                                                                ..default()
-                                                            },
-                                                            TextColor(res.colors.home_font_color),
-                                                        ));
-                                                    });
+                                                Self::ui_button_same(
+                                                    parent,
+                                                    FileDialogButton,
+                                                    text,
+                                                    &res,
+                                                    &assets,
+                                                );
                                             } else {
-                                                parent
-                                                    .spawn((
-                                                        Name::new(text),
-                                                        Node {
-                                                            padding: UiRect::new(
-                                                                Val::Px(15.),
-                                                                Val::Px(15.),
-                                                                Val::Px(5.0),
-                                                                Val::Px(5.0),
-                                                            ),
-                                                            box_sizing: BoxSizing::BorderBox,
-                                                            border: UiRect::all(Val::Px(1.0)),
-                                                            justify_content: JustifyContent::Center,
-                                                            align_self: AlignSelf::Center,
-                                                            ..default()
-                                                        },
-                                                        BorderRadius::all(Val::Px(3.)),
-                                                        ProjectItemButton,
-                                                        Hovered::default(),
-                                                        BorderColor::all(res.colors.button_border),
-                                                        BackgroundColor(res.colors.home_menu),
-                                                    ))
-                                                    .with_children(|parent| {
-                                                        parent.spawn((
-                                                            Text::new(text),
-                                                            TextFont {
-                                                                font_size: 16.0,
-                                                                font: assets
-                                                                    .load(MAPLE_MONO_BOLD_ITALIC),
-                                                                ..default()
-                                                            },
-                                                            TextColor(res.colors.home_font_color),
-                                                        ));
-                                                    });
+                                                Self::ui_button_same(
+                                                    parent,
+                                                    ProjectItemButton,
+                                                    text,
+                                                    &res,
+                                                    &assets,
+                                                );
                                             }
                                         }
                                     });

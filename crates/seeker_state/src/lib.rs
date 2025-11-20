@@ -47,6 +47,15 @@ impl From<String> for SeekerFileDialogFnState {
     }
 }
 
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates, enum_from_derive::From)]
+#[source(SeekerFileDialogFnState = SeekerFileDialogFnState::Open)]
+#[states(scoped_entities)]
+pub enum SeekerNewFolderState {
+    #[default]
+    None,
+    Open,
+}
+
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, SubStates)]
 #[source(SeekerState = SeekerState::Home)]
 #[states(scoped_entities)]

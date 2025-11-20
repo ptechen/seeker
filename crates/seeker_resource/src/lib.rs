@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 pub mod color;
 pub mod fonts;
+pub mod file;
 
 #[derive(Resource)]
 pub struct SeekerResource {
