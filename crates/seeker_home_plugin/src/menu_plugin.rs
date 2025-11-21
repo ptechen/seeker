@@ -24,7 +24,7 @@ impl Plugin for MenuPlugin {
         app.add_systems(OnEnter(SeekerState::Home), Self::menu_enter)
             .add_systems(
                 Update,
-                Self::update_color_state::<HomeMenuButton, SeekerHomeSubFnState>,
+                Self::update_color_state::<HomeMenuButton, SeekerHomeSubFnState>.run_if(in_state(SeekerState::Home).or(in_state(SeekerHomeSubLoadState::Loaded))),
             );
     }
 }

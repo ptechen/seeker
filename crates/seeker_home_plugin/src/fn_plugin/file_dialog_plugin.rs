@@ -1,4 +1,4 @@
-use crate::fn_plugin::new_folder_plugin::NewFolderPlugin;
+use crate::fn_plugin::new_folder_plugin::{NewFolderPlugin, NewFolderWindow};
 use bevy::camera::RenderTarget;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::picking::hover::Hovered;
@@ -18,6 +18,9 @@ use std::path::PathBuf;
 
 #[derive(Component)]
 pub struct FileDialogPlugin;
+
+#[derive(Component)]
+pub struct FileDialogWindow;
 
 impl SeekerTrait for FileDialogPlugin {}
 
@@ -39,21 +42,31 @@ impl Plugin for FileDialogPlugin {
             .add_systems(OnEnter(SeekerFileDialogFnState::Open), Self::enter)
             .add_systems(
                 Update,
-                Self::button_on_pressed_changed_color::<FileDialogButton>,
+                (
+                    Self::button_on_pressed_changed_color::<FileDialogButton>,
+                    Self::update_file,
+                    Self::update_fn,
+                )
+                    .run_if(in_state(SeekerFileDialogFnState::Open)),
             )
-            .add_systems(Update, Self::update_file)
             .add_observer(
                 Self::button_on_hovered_changed_color::<Insert, Hovered, FileDialogFnButton>,
-            )
-            .add_systems(Update, Self::update_fn);
+            );
     }
 }
 
 impl FileDialogPlugin {
-    fn enter(mut commands: Commands, res: Res<SeekerResource>, assets: Res<AssetServer>) {
+    fn enter(
+        mut commands: Commands,
+        res: Res<SeekerResource>,
+        assets: Res<AssetServer>,
+        mut window: Single<&mut Window>,
+    ) {
+        window.visible = false;
         let file_dialog_window = commands
             .spawn((
                 DespawnOnExit(SeekerFileDialogFnState::Open),
+                FileDialogWindow,
                 BorderRadius::all(Val::Px(3.)),
                 Window {
                     window_theme: Some(SEEKER_CONFIG.window_theme),
@@ -67,6 +80,7 @@ impl FileDialogPlugin {
             .id();
         let file_dialog_camera = commands
             .spawn((
+                DespawnOnExit(SeekerFileDialogFnState::Open),
                 Camera2d::default(),
                 Camera {
                     target: RenderTarget::Window(WindowRef::Entity(file_dialog_window)),
@@ -80,6 +94,7 @@ impl FileDialogPlugin {
         };
 
         let mut parent = commands.spawn((
+            DespawnOnExit(SeekerFileDialogFnState::Open),
             UiTargetCamera(file_dialog_camera),
             Node {
                 display: Display::Flex,
@@ -205,15 +220,18 @@ impl FileDialogPlugin {
             (Entity, &Name, &Interaction),
             (Changed<Interaction>, With<FileDialogFnButton>),
         >,
+        mut window: Single<&mut Window, Without<FileDialogWindow>>
     ) {
         for (entity, name, interaction) in query.iter_mut() {
             if *interaction == Interaction::Pressed {
                 match name.as_str() {
                     "Open" => {
+                        window.visible = true;
                         state.set(SeekerState::Edit);
                         dialog_file_state.set(SeekerFileDialogFnState::None);
                     }
                     "Cancel" => {
+                        window.visible = true;
                         dialog_file_state.set(SeekerFileDialogFnState::None);
                     }
                     "NewFolder" => {

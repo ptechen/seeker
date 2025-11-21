@@ -99,7 +99,6 @@ pub trait SeekerTrait {
                     padding: UiRect::new(Val::Px(15.), Val::Px(15.), Val::Px(5.0), Val::Px(5.0)),
                     box_sizing: BoxSizing::BorderBox,
                     border: UiRect::all(Val::Px(1.0)),
-                    justify_content: JustifyContent::Center,
                     align_self: AlignSelf::Center,
                     ..default()
                 },
@@ -130,5 +129,21 @@ pub trait SeekerTrait {
         assets: &Res<AssetServer>,
     ) {
         Self::ui_button(parent, button, name, name, res, assets);
+    }
+
+    fn disable_window_interaction<C: Component>(
+        mut windows: Query<&mut Window, With<C>>,
+    ) {
+        for mut window in windows.iter_mut() {
+            window.focused = false;
+        }
+    }
+
+    fn enable_window_interaction<C: Component>(
+        mut windows: Query<&mut Window, With<C>>,
+    ) {
+        for mut window in windows.iter_mut() {
+            window.focused = true;
+        }
     }
 }

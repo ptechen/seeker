@@ -36,11 +36,13 @@ impl Plugin for ProjectPlugin {
             )
             .add_systems(
                 Update,
-                Self::update_color_state::<ProjectItemButton, SeekerHomeSubFnState>,
+                Self::update_color_state::<ProjectItemButton, SeekerHomeSubFnState>
+                    .run_if(in_state(SeekerHomeSubFnState::Project)),
             )
             .add_systems(
                 Update,
-                Self::update_color_state::<FileDialogButton, SeekerFileDialogFnState>,
+                Self::update_color_state::<FileDialogButton, SeekerFileDialogFnState>
+                    .run_if(in_state(SeekerHomeSubFnState::Project)),
             )
             .add_observer(
                 Self::button_on_hovered_changed_color::<Insert, Hovered, ProjectItemButton>,
