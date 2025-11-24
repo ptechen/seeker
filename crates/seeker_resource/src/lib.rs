@@ -2,8 +2,8 @@ use crate::color::SeekerColors;
 use bevy::prelude::*;
 
 pub mod color;
-pub mod fonts;
 pub mod file;
+pub mod fonts;
 
 #[derive(Resource)]
 pub struct SeekerResource {

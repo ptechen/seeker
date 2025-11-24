@@ -1,7 +1,7 @@
+use bevy::prelude::*;
 use std::fs;
 use std::fs::DirEntry;
 use std::path::PathBuf;
-use bevy::prelude::*;
 
 #[derive(Component, Clone)]
 pub struct File {

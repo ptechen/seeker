@@ -10,10 +10,9 @@ use seeker_resource::file::{get_files, CurrentFile, File, Level};
 use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
 use seeker_state::{
-    SeekerFileDialogFnState, SeekerHomeSubFnState, SeekerNewFolderState, SeekerState,
+    SeekerFileDialogFnState, SeekerNewFolderState, SeekerState,
 };
 use seeker_trait::SeekerTrait;
-use std::any::Any;
 use std::os::unix::fs::MetadataExt;
 
 #[derive(Component)]

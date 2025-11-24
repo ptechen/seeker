@@ -1,7 +1,6 @@
 use crate::FnUi;
 use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
-use bevy::state::state::FreelyMutableState;
 use bevy::text::LineHeight;
 use bevy::ui::FocusPolicy;
 use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;

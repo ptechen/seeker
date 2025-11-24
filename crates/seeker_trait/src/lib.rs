@@ -131,17 +131,13 @@ pub trait SeekerTrait {
         Self::ui_button(parent, button, name, name, res, assets);
     }
 
-    fn disable_window_interaction<C: Component>(
-        mut windows: Query<&mut Window, With<C>>,
-    ) {
+    fn disable_window_interaction<C: Component>(mut windows: Query<&mut Window, With<C>>) {
         for mut window in windows.iter_mut() {
             window.focused = false;
         }
     }
 
-    fn enable_window_interaction<C: Component>(
-        mut windows: Query<&mut Window, With<C>>,
-    ) {
+    fn enable_window_interaction<C: Component>(mut windows: Query<&mut Window, With<C>>) {
         for mut window in windows.iter_mut() {
             window.focused = true;
         }

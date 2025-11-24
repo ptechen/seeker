@@ -1,4 +1,4 @@
-use crate::fn_plugin::file_dialog_plugin::{FileDialogFnButton, FileDialogWindow};
+use crate::fn_plugin::file_dialog_plugin::FileDialogWindow;
 use bevy::camera::RenderTarget;
 use bevy::input::keyboard::{Key, KeyboardInput};
 use bevy::picking::hover::Hovered;
@@ -6,12 +6,12 @@ use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy::window::{WindowRef, WindowResolution};
 use seeker_config::SEEKER_CONFIG;
+use seeker_resource::file::CurrentFile;
 use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
 use seeker_state::SeekerNewFolderState;
 use seeker_trait::SeekerTrait;
 use std::mem;
-use seeker_resource::file::CurrentFile;
 
 #[derive(Component)]
 pub struct NewFolderPlugin;
@@ -54,7 +54,12 @@ impl Plugin for NewFolderPlugin {
 }
 
 impl NewFolderPlugin {
-    fn on_enter(mut commands: Commands, res: Res<SeekerResource>, assets: Res<AssetServer>, mut window: Single<&mut Window, With<FileDialogWindow>>) {
+    fn on_enter(
+        mut commands: Commands,
+        res: Res<SeekerResource>,
+        assets: Res<AssetServer>,
+        mut window: Single<&mut Window, With<FileDialogWindow>>,
+    ) {
         window.visible = false;
         let new_folder_window = commands
             .spawn((
@@ -191,23 +196,15 @@ impl NewFolderPlugin {
     ) {
         for ime in ime_reader.read() {
             match ime {
-                Ime::Preedit { value, cursor, .. } if !cursor.is_none() => {
-                    // *ui_writer.text(*status_text, 7) = format!("{value}\n");
-                }
-                Ime::Preedit { cursor, .. } if cursor.is_none() => {
-                    // *ui_writer.text(*status_text, 7) = "\n".to_string();
-                }
+                Ime::Preedit { cursor, .. } if !cursor.is_none() => {}
+                Ime::Preedit { cursor, .. } if cursor.is_none() => {}
                 Ime::Commit { value, .. } => {
                     if edit_text.len() < 32 {
                         edit_text.push_str(value);
                     }
                 }
-                Ime::Enabled { .. } => {
-                    // *ui_writer.text(*status_text, 5) = "true\n".to_string();
-                }
-                Ime::Disabled { .. } => {
-                    // *ui_writer.text(*status_text, 5) = "false\n".to_string();
-                }
+                Ime::Enabled { .. } => {}
+                Ime::Disabled { .. } => {}
                 _ => (),
             }
         }
@@ -247,7 +244,7 @@ impl NewFolderPlugin {
                     // Make sure the text doesn't have any control characters,
                     // which can happen when keys like Escape are pressed
                     if inserted_text.chars().all(Self::is_printable_char) {
-                        if text.len() <32 {
+                        if text.len() < 32 {
                             text.push_str(inserted_text);
                         }
                     }
