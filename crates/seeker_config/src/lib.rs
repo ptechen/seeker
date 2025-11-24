@@ -15,6 +15,8 @@ pub struct SeekerConfig {
     pub window_theme: WindowTheme,
     #[serde(skip)]
     pub colors: SeekerColors,
+    #[serde(skip)]
+    pub font_size: f32,
 }
 
 impl Default for SeekerConfig {
@@ -22,6 +24,7 @@ impl Default for SeekerConfig {
         Self {
             window_theme: WindowTheme::Dark,
             colors: SeekerColors::from(WindowTheme::Dark),
+            font_size: 14.,
         }
     }
 }

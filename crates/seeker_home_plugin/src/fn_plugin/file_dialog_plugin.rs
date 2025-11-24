@@ -13,8 +13,8 @@ use seeker_state::{
     SeekerFileDialogFnState, SeekerHomeSubFnState, SeekerNewFolderState, SeekerState,
 };
 use seeker_trait::SeekerTrait;
-use std::fs;
-use std::path::PathBuf;
+use std::any::Any;
+use std::os::unix::fs::MetadataExt;
 
 #[derive(Component)]
 pub struct FileDialogPlugin;
@@ -121,7 +121,7 @@ impl FileDialogPlugin {
             let dialog_level = Level::new(1);
             let files = get_files(home, parent.id(), dialog_level.clone());
             parent.with_children(|parent| {
-                Self::render(&files, parent, &assets, dialog_level);
+                Self::render_dir(&files, parent, &assets, dialog_level);
             });
         });
         parent.with_children(|parent| {
@@ -186,13 +186,17 @@ impl FileDialogPlugin {
     ) {
         let mut entity = None;
         let mut path = None;
+        let mut is_dir = false;
+        let mut file_ = None;
         let mut dialog_level = Level::default();
         for (file, interaction) in query.p0().iter_mut() {
-            if *interaction == Interaction::Pressed && file.is_dir {
-                current_file.file = Some(file.clone());
+            if *interaction == Interaction::Pressed {
+                is_dir = file.is_dir;
                 path = Some(file.path.clone());
                 entity = Some(file.root_entity);
                 dialog_level = Level::new(file.level.level + 1);
+                current_file.file = Some(file.clone());
+                file_ = Some(file.clone());
             }
         }
         if dialog_level.level >= 2 {
@@ -201,12 +205,19 @@ impl FileDialogPlugin {
                     commands.entity(entity).despawn();
                 }
             }
-
-            if let (Some(path), Some(entity)) = (path, entity) {
-                let files = get_files(path, entity, dialog_level.clone());
-                commands.entity(entity).with_children(|parent| {
-                    Self::render(&files, parent, &asset, dialog_level);
-                });
+            if is_dir {
+                if let (Some(path), Some(entity)) = (path, entity) {
+                    let files = get_files(path, entity, dialog_level.clone());
+                    commands.entity(entity).with_children(|parent| {
+                        Self::render_dir(&files, parent, &asset, dialog_level);
+                    });
+                }
+            } else {
+                if let (Some(file), Some(entity)) = (file_, entity) {
+                    commands.entity(entity).with_children(|parent| {
+                        Self::render_file(file, parent, &asset, dialog_level);
+                    });
+                }
             }
         }
     }
@@ -220,7 +231,7 @@ impl FileDialogPlugin {
             (Entity, &Name, &Interaction),
             (Changed<Interaction>, With<FileDialogFnButton>),
         >,
-        mut window: Single<&mut Window, Without<FileDialogWindow>>
+        mut window: Single<&mut Window, Without<FileDialogWindow>>,
     ) {
         for (entity, name, interaction) in query.iter_mut() {
             if *interaction == Interaction::Pressed {
@@ -243,7 +254,7 @@ impl FileDialogPlugin {
         }
     }
 
-    fn render(
+    fn render_dir(
         files: &Vec<File>,
         parent: &mut RelatedSpawnerCommands<ChildOf>,
         asset: &Res<AssetServer>,
@@ -255,7 +266,9 @@ impl FileDialogPlugin {
                 Node {
                     display: Display::Flex,
                     flex_direction: FlexDirection::Column,
-                    overflow: Overflow::scroll_y(),
+                    min_width: Val::Px(400.),
+                    max_width: Val::Px(400.),
+                    overflow: Overflow::scroll(),
                     padding: UiRect::new(Val::Px(10.), Val::Px(10.), Val::Px(0.), Val::Px(0.)),
                     border: UiRect::right(Val::Px(1.)),
                     ..default()
@@ -278,7 +291,7 @@ impl FileDialogPlugin {
                             ))
                             .with_children(|parent| {
                                 parent.spawn((
-                                    Text::new(&file.filename),
+                                    Text::new(truncate_filename(&file.filename, 20)),
                                     TextFont {
                                         font: asset.load(MAPLE_MONO_BOLD_ITALIC),
                                         ..default()
@@ -297,7 +310,7 @@ impl FileDialogPlugin {
                         parent.spawn((
                             file.clone(),
                             FileDialogButton,
-                            Text::new(&file.filename),
+                            Text::new(truncate_filename(&file.filename, 23)),
                             TextFont {
                                 font: asset.load(MAPLE_MONO_BOLD_ITALIC),
                                 ..default()
@@ -306,5 +319,223 @@ impl FileDialogPlugin {
                     }
                 }
             });
+    }
+
+    fn render_file(
+        file: File,
+        parent: &mut RelatedSpawnerCommands<ChildOf>,
+        asset: &Res<AssetServer>,
+        level: Level,
+    ) {
+        parent
+            .spawn((
+                level,
+                Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Column,
+                    min_width: Val::Px(400.),
+                    overflow: Overflow::scroll(),
+                    padding: UiRect::new(Val::Px(10.), Val::Px(10.), Val::Px(0.), Val::Px(0.)),
+                    border: UiRect::right(Val::Px(1.)),
+                    ..default()
+                },
+                BorderColor::all(Color::srgb_u8(78, 81, 87)),
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((
+                        file.clone(),
+                        Node {
+                            width: Val::Percent(100.),
+                            height: Val::Percent(100.),
+                            display: Display::Flex,
+                            flex_direction: FlexDirection::Column,
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    ))
+                    .with_children(|parent| {
+                        if let Ok(metadata) = std::fs::metadata(&file.path) {
+                            parent.spawn((
+                                Text::new(format!("filename: {}", file.filename)),
+                                TextFont {
+                                    font: asset.load(MAPLE_MONO_BOLD_ITALIC),
+                                    font_size: 14.,
+                                    ..default()
+                                },
+                            ));
+                            parent.spawn((
+                                Text::new(format!("size: {}", metadata.size())),
+                                TextFont {
+                                    font: asset.load(MAPLE_MONO_BOLD_ITALIC),
+                                    font_size: 14.,
+                                    ..default()
+                                },
+                            ));
+                            parent.spawn((
+                                Text::new(format!(
+                                    "created_time: {}",
+                                    system_time_to_datetime_string(metadata.created().unwrap())
+                                )),
+                                TextFont {
+                                    font: asset.load(MAPLE_MONO_BOLD_ITALIC),
+                                    font_size: 14.,
+                                    ..default()
+                                },
+                            ));
+                            parent.spawn((
+                                Text::new(format!(
+                                    "modified_time: {}",
+                                    system_time_to_datetime_string(metadata.modified().unwrap())
+                                )),
+                                TextFont {
+                                    font: asset.load(MAPLE_MONO_BOLD_ITALIC),
+                                    font_size: 14.,
+                                    ..default()
+                                },
+                            ));
+                        }
+                    });
+            });
+    }
+}
+
+// 估算显示宽度（中文等宽字符算作2个单位宽度）
+fn char_display_width(ch: char) -> usize {
+    if ch.len_utf8() > 1 {
+        2
+    } else {
+        1
+    }
+}
+
+use chrono::{DateTime, Utc};
+use std::time::SystemTime;
+
+fn system_time_to_datetime_string(system_time: SystemTime) -> String {
+    let datetime: DateTime<Utc> = system_time.into();
+    datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+}
+
+fn truncate_filename(filename: &str, max_length: usize) -> String {
+    let mut filename_len = 0;
+    for char in filename.chars() {
+        filename_len += char_display_width(char);
+    }
+    // 如果字符数小于等于最大长度，直接返回
+    if filename_len <= max_length {
+        return filename.to_string();
+    }
+
+    // 获取文件扩展名（如果有）
+    let extension = std::path::Path::new(filename)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("");
+
+    if !extension.is_empty() {
+        // 包含扩展名的情况：保留扩展名并在名称主体部分中间截断
+        let basename = std::path::Path::new(filename)
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or(filename);
+
+        let extension_width: usize = extension.chars().map(char_display_width).sum();
+        let basename_chars: Vec<char> = basename.chars().collect();
+        let basename_width: usize = basename_chars.iter().map(|&c| char_display_width(c)).sum();
+
+        // 计算可用于basename的空间（预留 "..."+extension+"." 的空间）
+        let available_width = max_length.saturating_sub(extension_width + 4); // "...".len() + ".".len()
+
+        if available_width > 0 && basename_width > 0 {
+            // 根据显示宽度而不是字符数来分割
+            let half_width = available_width / 2;
+
+            // 构建前半部分
+            let mut first_part = String::new();
+            let mut first_width = 0;
+            let mut split_index = 0;
+            for (i, &ch) in basename_chars.iter().enumerate() {
+                let ch_width = char_display_width(ch);
+                if first_width + ch_width <= half_width {
+                    first_part.push(ch);
+                    first_width += ch_width;
+                    split_index = i + 1;
+                } else {
+                    break;
+                }
+            }
+
+            // 构建后半部分
+            let mut second_part = String::new();
+            let mut remaining_width = available_width - first_width;
+            for &ch in basename_chars[split_index..].iter().rev() {
+                let ch_width = char_display_width(ch);
+                if ch_width <= remaining_width {
+                    second_part.push(ch);
+                    remaining_width -= ch_width;
+                } else {
+                    break;
+                }
+            }
+            second_part = second_part.chars().rev().collect();
+
+            format!("{}...{}.{}", first_part, second_part, extension)
+        } else {
+            // 如果空间不足，显示前几个字符加扩展名
+            let display_len = max_length.saturating_sub(extension_width + 2); // "..".len() + ".".len()
+            if display_len > 0 {
+                let mut shortened = String::new();
+                let mut current_width = 0;
+                for ch in filename.chars() {
+                    let ch_width = char_display_width(ch);
+                    if current_width + ch_width <= display_len {
+                        shortened.push(ch);
+                        current_width += ch_width;
+                    } else {
+                        break;
+                    }
+                }
+                format!("{}..{}", shortened, extension)
+            } else {
+                format!(".{}", extension)
+            }
+        }
+    } else {
+        // 没有扩展名的情况：简单地从中间截断
+        let filename_chars: Vec<char> = filename.chars().collect();
+        let half_width = (max_length - 3) / 2; // 3 是 "..." 的长度
+
+        // 构建前半部分
+        let mut first_part = String::new();
+        let mut first_width = 0;
+        let mut split_index = 0;
+        for (i, &ch) in filename_chars.iter().enumerate() {
+            let ch_width = char_display_width(ch);
+            if first_width + ch_width <= half_width {
+                first_part.push(ch);
+                first_width += ch_width;
+                split_index = i + 1;
+            } else {
+                break;
+            }
+        }
+
+        // 构建后半部分
+        let mut second_part = String::new();
+        let mut remaining_width = (max_length - 3) - first_width;
+        for &ch in filename_chars[split_index..].iter().rev() {
+            let ch_width = char_display_width(ch);
+            if ch_width <= remaining_width {
+                second_part.push(ch);
+                remaining_width -= ch_width;
+            } else {
+                break;
+            }
+        }
+        second_part = second_part.chars().rev().collect();
+
+        format!("{}...{}", first_part, second_part)
     }
 }

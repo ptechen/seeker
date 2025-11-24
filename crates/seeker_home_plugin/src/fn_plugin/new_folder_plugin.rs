@@ -137,7 +137,7 @@ impl NewFolderPlugin {
                                 Text::new(""),
                                 TextFont {
                                     font: font.clone(),
-                                    font_size: 16.0,
+                                    font_size: SEEKER_CONFIG.font_size,
                                     ..default()
                                 },
                             ));
