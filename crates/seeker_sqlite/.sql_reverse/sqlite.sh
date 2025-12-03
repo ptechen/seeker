@@ -1,0 +1,1 @@
+sql_reverse sqlite -f sqlite.yml -c default_sqlite.json

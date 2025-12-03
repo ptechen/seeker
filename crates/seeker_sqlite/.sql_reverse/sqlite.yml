@@ -1,0 +1,5 @@
+db_url: '/Users/taochen/.Seeker/seeker.db'
+include_tables: # Include tables, can be ignored.
+exclude_tables: # Exclude, tables, can be ignored.
+  - sqlite_sequence
+output_dir: ../src/seeker # code output directory

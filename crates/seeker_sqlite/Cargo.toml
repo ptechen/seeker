@@ -1,0 +1,9 @@
+[package]
+name = "seeker_sqlite"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rusqlite ={ workspace = true, features = ["bundled"] }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }

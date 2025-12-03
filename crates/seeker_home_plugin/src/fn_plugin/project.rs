@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy::text::LineHeight;
 use bevy::ui::FocusPolicy;
 use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
+use seeker_resource::project_list::ProjectListResource;
 use seeker_resource::SeekerResource;
 use seeker_state::{SeekerFileDialogFnState, SeekerHomeSubFnState, SeekerHomeSubLoadState};
 use seeker_trait::SeekerTrait;
@@ -25,7 +26,8 @@ impl SeekerTrait for ProjectPlugin {}
 
 impl Plugin for ProjectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(SeekerHomeSubLoadState::Loaded), Self::project_enter)
+        app.insert_resource(ProjectListResource::default())
+            .add_systems(OnEnter(SeekerHomeSubLoadState::Loaded), Self::project_enter)
             .add_systems(OnEnter(SeekerHomeSubFnState::Project), Self::project_enter)
             // .add_systems(OnEnter(SeekerHomeSubFnState::NewProject), Self::new_project)
             // .add_systems(OnEnter(SeekerHomeSubFnState::Open), Self::open_project)
@@ -91,6 +93,7 @@ impl ProjectPlugin {
         query: Query<Entity, With<FnUi>>,
         res: Res<SeekerResource>,
         assets: Res<AssetServer>,
+        project_list: Res<ProjectListResource>,
     ) {
         for entity in query.iter() {
             commands.entity(entity).with_children(|parent| {
@@ -197,7 +200,7 @@ impl ProjectPlugin {
                                 },
                             ))
                             .with_children(|parent| {
-                                for i in 0..20 {
+                                for project in &project_list.projects {
                                     parent
                                         .spawn((
                                             ProjectItemButton,
@@ -233,7 +236,7 @@ impl ProjectPlugin {
                                                 ))
                                                 .with_children(|parent| {
                                                     parent.spawn((
-                                                        Text::new(format!("P{}", i)),
+                                                        Text::new(get_project_name_short(&project.project_name)),
                                                         TextLayout {
                                                             justify: Justify::Center,
                                                             ..default()
@@ -266,13 +269,24 @@ impl ProjectPlugin {
                                                 ))
                                                 .with_children(|parent| {
                                                     parent.spawn((
-                                                        Text::new(format!("Project {}", i)),
+                                                        Text::new(&project.project_name),
                                                         TextFont {
                                                             font: assets
                                                                 .load(MAPLE_MONO_BOLD_ITALIC),
+                                                            font_size: 16.0,
                                                             ..default()
                                                         },
                                                         TextColor(res.colors.home_font_color),
+                                                    ));
+                                                    parent.spawn((
+                                                        Text::new(&project.path),
+                                                        TextFont {
+                                                            font: assets
+                                                                .load(MAPLE_MONO_BOLD_ITALIC),
+                                                            font_size: 16.0,
+                                                            ..default()
+                                                        },
+                                                        TextColor(res.colors.home_font_grey_color),
                                                     ));
                                                 });
                                         });
@@ -282,4 +296,10 @@ impl ProjectPlugin {
             });
         }
     }
+}
+
+/// 获取项目名称的简称（两个字符）
+fn get_project_name_short(project_name: &str) -> String {
+    let project_name:String = project_name.chars().take(2).collect();
+    project_name.to_uppercase()
 }

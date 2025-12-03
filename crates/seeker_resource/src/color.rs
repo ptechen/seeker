@@ -7,6 +7,8 @@ pub struct SeekerColors {
     pub home_hovered: Color,
     pub button_border: Color,
     pub home_font_color: Color,
+    /// 灰色
+    pub home_font_grey_color: Color,
 }
 
 impl SeekerColors {
@@ -17,6 +19,7 @@ impl SeekerColors {
             home_hovered: Color::srgb_u8(50, 66, 107),
             button_border: Color::srgb_u8(79, 81, 86),
             home_font_color: Color::srgb_u8(218, 220, 224),
+            home_font_grey_color: Color::srgb_u8(100, 100, 100),
         }
     }
 }

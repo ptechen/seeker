@@ -9,9 +9,8 @@ use seeker_config::SEEKER_CONFIG;
 use seeker_resource::file::{get_files, CurrentFile, File, Level};
 use seeker_resource::fonts::MAPLE_MONO_BOLD_ITALIC;
 use seeker_resource::SeekerResource;
-use seeker_state::{
-    SeekerFileDialogFnState, SeekerNewFolderState, SeekerState,
-};
+use seeker_sqlite::seeker::project::Project;
+use seeker_state::{SeekerFileDialogFnState, SeekerNewFolderState, SeekerState};
 use seeker_trait::SeekerTrait;
 use std::os::unix::fs::MetadataExt;
 
@@ -223,6 +222,7 @@ impl FileDialogPlugin {
     fn update_fn(
         mut commands: Commands,
         current_file: Res<CurrentFile>,
+        mut project_list: ResMut<ProjectListResource>,
         mut state: ResMut<NextState<SeekerState>>,
         mut dialog_file_state: ResMut<NextState<SeekerFileDialogFnState>>,
         mut new_folder_state: ResMut<NextState<SeekerNewFolderState>>,
@@ -237,8 +237,20 @@ impl FileDialogPlugin {
                 match name.as_str() {
                     "Open" => {
                         window.visible = true;
-                        state.set(SeekerState::Edit);
+                        // state.set(SeekerState::Edit);
                         dialog_file_state.set(SeekerFileDialogFnState::None);
+                        if let Some(file) = current_file.file.as_ref() {
+                            if file.is_dir {
+                                let data = Project {
+                                    project_name: file.filename.to_string(),
+                                    path: file.path.to_string_lossy().to_string(),
+                                };
+                                if let Err(err) = data.insert_data() {
+                                    error!("{err}");
+                                };
+                                project_list.projects.push(data);
+                            }
+                        }
                     }
                     "Cancel" => {
                         window.visible = true;
@@ -409,8 +421,10 @@ fn char_display_width(ch: char) -> usize {
     }
 }
 
+use bevy::tasks::IoTaskPool;
 use chrono::{DateTime, Utc};
 use std::time::SystemTime;
+use seeker_resource::project_list::ProjectListResource;
 
 fn system_time_to_datetime_string(system_time: SystemTime) -> String {
     let datetime: DateTime<Utc> = system_time.into();
